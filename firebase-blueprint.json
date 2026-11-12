@@ -1,0 +1,332 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User profile with preference settings and default currency",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Unique user ID from Firebase Auth",
+          "maxLength": 128
+        },
+        "email": {
+          "type": "string",
+          "description": "User email address",
+          "maxLength": 256
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User display name",
+          "maxLength": 128
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "Avatar URL",
+          "maxLength": 1024
+        },
+        "currency": {
+          "type": "string",
+          "description": "Preferred currency symbol or code (e.g. INR, USD, EUR)",
+          "maxLength": 10
+        },
+        "monthlyBudgetLimit": {
+          "type": "number",
+          "description": "Overall monthly spending budget threshold"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp",
+          "maxLength": 64
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last updated timestamp",
+          "maxLength": 64
+        }
+      },
+      "required": ["userId", "email", "createdAt"]
+    },
+    "Transaction": {
+      "title": "Personal Finance Transaction",
+      "description": "Record of income, expense, or investment",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique transaction ID",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user ID",
+          "maxLength": 128
+        },
+        "title": {
+          "type": "string",
+          "description": "Transaction title or merchant name",
+          "maxLength": 160
+        },
+        "amount": {
+          "type": "number",
+          "description": "Numerical amount of the transaction"
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of transaction",
+          "enum": ["expense", "income", "investment", "transfer"]
+        },
+        "category": {
+          "type": "string",
+          "description": "Category e.g. Housing, Food, Utilities, Shopping, Salary, Investment",
+          "maxLength": 64
+        },
+        "date": {
+          "type": "string",
+          "description": "Date of transaction in ISO format YYYY-MM-DD",
+          "maxLength": 32
+        },
+        "account": {
+          "type": "string",
+          "description": "Associated bank, card, or cash wallet",
+          "maxLength": 64
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional notes, reference numbers, or context",
+          "maxLength": 500
+        },
+        "tags": {
+          "type": "array",
+          "description": "Labels or tags for filtering"
+        },
+        "isRecurring": {
+          "type": "boolean",
+          "description": "Whether this is a recurring monthly bill or subscription"
+        },
+        "isStarred": {
+          "type": "boolean",
+          "description": "Whether bookmarked or flagged for review"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp",
+          "maxLength": 64
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last update timestamp",
+          "maxLength": 64
+        }
+      },
+      "required": ["id", "userId", "title", "amount", "type", "category", "date", "createdAt"]
+    },
+    "Budget": {
+      "title": "Category Budget",
+      "description": "Budget allocation for a spending category for a month",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique budget ID",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user ID",
+          "maxLength": 128
+        },
+        "category": {
+          "type": "string",
+          "description": "Category name",
+          "maxLength": 64
+        },
+        "monthlyLimit": {
+          "type": "number",
+          "description": "Max spending limit allocated"
+        },
+        "monthYear": {
+          "type": "string",
+          "description": "Target month-year YYYY-MM",
+          "maxLength": 16
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp",
+          "maxLength": 64
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Update timestamp",
+          "maxLength": 64
+        }
+      },
+      "required": ["id", "userId", "category", "monthlyLimit", "monthYear", "createdAt"]
+    },
+    "MonthlyReport": {
+      "title": "Automated Monthly Financial Report",
+      "description": "Automated monthly report synthesizing cash flow, category breakdowns, Gemini Thinking insights, and Google Search grounded benchmarks",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique report ID",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user ID",
+          "maxLength": 128
+        },
+        "monthYear": {
+          "type": "string",
+          "description": "Target month YYYY-MM",
+          "maxLength": 16
+        },
+        "monthName": {
+          "type": "string",
+          "description": "Formatted month name e.g. November 2026",
+          "maxLength": 64
+        },
+        "totalIncome": {
+          "type": "number",
+          "description": "Sum of all income for the month"
+        },
+        "totalExpense": {
+          "type": "number",
+          "description": "Sum of all expenses for the month"
+        },
+        "totalInvestment": {
+          "type": "number",
+          "description": "Sum of investments for the month"
+        },
+        "netSavings": {
+          "type": "number",
+          "description": "Income minus expenses"
+        },
+        "savingsRate": {
+          "type": "number",
+          "description": "Percentage of income saved"
+        },
+        "transactionCount": {
+          "type": "number",
+          "description": "Total transactions in the month"
+        },
+        "categoryBreakdown": {
+          "type": "string",
+          "description": "JSON string of category spending breakdown",
+          "maxLength": 8192
+        },
+        "aiThinkingAnalysis": {
+          "type": "string",
+          "description": "High-thinking deep reasoning evaluation of spending patterns and budget optimization",
+          "maxLength": 16384
+        },
+        "marketSearchContext": {
+          "type": "string",
+          "description": "Google Search grounded economic context such as inflation, interest benchmarks, and market indices",
+          "maxLength": 8192
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the report e.g. completed",
+          "maxLength": 32
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp",
+          "maxLength": 64
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Update timestamp",
+          "maxLength": 64
+        }
+      },
+      "required": ["id", "userId", "monthYear", "monthName", "totalIncome", "totalExpense", "netSavings", "createdAt"]
+    },
+    "FinancialGoal": {
+      "title": "Savings and Investment Goal",
+      "description": "User defined financial target like Emergency Fund, Vacation, Down Payment",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique goal ID",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user ID",
+          "maxLength": 128
+        },
+        "title": {
+          "type": "string",
+          "description": "Goal title",
+          "maxLength": 160
+        },
+        "targetAmount": {
+          "type": "number",
+          "description": "Target financial sum"
+        },
+        "currentAmount": {
+          "type": "number",
+          "description": "Current saved sum"
+        },
+        "targetDate": {
+          "type": "string",
+          "description": "Target deadline YYYY-MM-DD",
+          "maxLength": 32
+        },
+        "category": {
+          "type": "string",
+          "description": "Goal category e.g. Emergency, Travel, Vehicle, Home",
+          "maxLength": 64
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp",
+          "maxLength": 64
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Update timestamp",
+          "maxLength": 64
+        }
+      },
+      "required": ["id", "userId", "title", "targetAmount", "currentAmount", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "User"
+      },
+      "description": "Root user profile document"
+    },
+    "/users/{userId}/transactions/{transactionId}": {
+      "schema": {
+        "$ref": "Transaction"
+      },
+      "description": "User personal financial transactions"
+    },
+    "/users/{userId}/budgets/{budgetId}": {
+      "schema": {
+        "$ref": "Budget"
+      },
+      "description": "Monthly category budget targets"
+    },
+    "/users/{userId}/monthlyReports/{reportId}": {
+      "schema": {
+        "$ref": "MonthlyReport"
+      },
+      "description": "Automated monthly financial statements and AI analytics"
+    },
+    "/users/{userId}/financialGoals/{goalId}": {
+      "schema": {
+        "$ref": "FinancialGoal"
+      },
+      "description": "User financial savings and milestone goals"
+    }
+  }
+}

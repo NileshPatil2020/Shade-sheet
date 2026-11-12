@@ -1,0 +1,144 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // User profile validation
+    function isValidUser(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.email is string && data.email.size() <= 256 &&
+             (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 128)) &&
+             (!('currency' in data) || (data.currency is string && data.currency.size() <= 10)) &&
+             (!('monthlyBudgetLimit' in data) || (data.monthlyBudgetLimit is number && data.monthlyBudgetLimit >= 0)) &&
+             (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 1024)) &&
+             data.keys().hasAll(['userId', 'email', 'createdAt']) &&
+             data.keys().hasOnly(['userId', 'email', 'displayName', 'photoURL', 'currency', 'monthlyBudgetLimit', 'createdAt', 'updatedAt']);
+    }
+
+    // Transaction validation
+    function isValidTransaction(data, userId) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.userId is string && data.userId == userId &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 160 &&
+             data.amount is number &&
+             data.type is string && (data.type in ['expense', 'income', 'investment', 'transfer']) &&
+             data.category is string && data.category.size() <= 64 &&
+             data.date is string && data.date.size() <= 32 &&
+             (!('account' in data) || (data.account is string && data.account.size() <= 64)) &&
+             (!('notes' in data) || (data.notes is string && data.notes.size() <= 500)) &&
+             (!('tags' in data) || (data.tags is list && data.tags.size() <= 10)) &&
+             (!('isRecurring' in data) || (data.isRecurring is bool)) &&
+             (!('isStarred' in data) || (data.isStarred is bool)) &&
+             data.keys().hasAll(['id', 'userId', 'title', 'amount', 'type', 'category', 'date', 'createdAt']) &&
+             data.keys().hasOnly(['id', 'userId', 'title', 'amount', 'type', 'category', 'date', 'account', 'notes', 'tags', 'isRecurring', 'isStarred', 'createdAt', 'updatedAt']);
+    }
+
+    // Budget validation
+    function isValidBudget(data, userId) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.userId is string && data.userId == userId &&
+             data.category is string && data.category.size() <= 64 &&
+             data.monthlyLimit is number && data.monthlyLimit >= 0 &&
+             data.monthYear is string && data.monthYear.size() <= 16 &&
+             data.keys().hasAll(['id', 'userId', 'category', 'monthlyLimit', 'monthYear', 'createdAt']) &&
+             data.keys().hasOnly(['id', 'userId', 'category', 'monthlyLimit', 'monthYear', 'createdAt', 'updatedAt']);
+    }
+
+    // Monthly Report validation
+    function isValidMonthlyReport(data, userId) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.userId is string && data.userId == userId &&
+             data.monthYear is string && data.monthYear.size() <= 16 &&
+             data.monthName is string && data.monthName.size() <= 64 &&
+             data.totalIncome is number &&
+             data.totalExpense is number &&
+             data.netSavings is number &&
+             (!('totalInvestment' in data) || data.totalInvestment is number) &&
+             (!('savingsRate' in data) || data.savingsRate is number) &&
+             (!('transactionCount' in data) || data.transactionCount is number) &&
+             (!('categoryBreakdown' in data) || (data.categoryBreakdown is string && data.categoryBreakdown.size() <= 8192)) &&
+             (!('aiThinkingAnalysis' in data) || (data.aiThinkingAnalysis is string && data.aiThinkingAnalysis.size() <= 16384)) &&
+             (!('marketSearchContext' in data) || (data.marketSearchContext is string && data.marketSearchContext.size() <= 8192)) &&
+             (!('status' in data) || (data.status is string && data.status.size() <= 32)) &&
+             data.keys().hasAll(['id', 'userId', 'monthYear', 'monthName', 'totalIncome', 'totalExpense', 'netSavings', 'createdAt']) &&
+             data.keys().hasOnly(['id', 'userId', 'monthYear', 'monthName', 'totalIncome', 'totalExpense', 'totalInvestment', 'netSavings', 'savingsRate', 'transactionCount', 'categoryBreakdown', 'aiThinkingAnalysis', 'marketSearchContext', 'status', 'createdAt', 'updatedAt']);
+    }
+
+    // Financial Goal validation
+    function isValidFinancialGoal(data, userId) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.userId is string && data.userId == userId &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 160 &&
+             data.targetAmount is number && data.targetAmount >= 0 &&
+             data.currentAmount is number && data.currentAmount >= 0 &&
+             (!('targetDate' in data) || (data.targetDate is string && data.targetDate.size() <= 32)) &&
+             (!('category' in data) || (data.category is string && data.category.size() <= 64)) &&
+             data.keys().hasAll(['id', 'userId', 'title', 'targetAmount', 'currentAmount', 'createdAt']) &&
+             data.keys().hasOnly(['id', 'userId', 'title', 'targetAmount', 'currentAmount', 'targetDate', 'category', 'createdAt', 'updatedAt']);
+    }
+
+    // User Profile rules
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(incoming(), userId);
+      allow update: if isOwner(userId) && isValidUser(incoming(), userId) && incoming().userId == existing().userId && incoming().createdAt == existing().createdAt;
+      allow delete: if isOwner(userId);
+
+      // Transactions
+      match /transactions/{transactionId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(transactionId) && isValidTransaction(incoming(), userId);
+        allow update: if isOwner(userId) && isValidId(transactionId) && isValidTransaction(incoming(), userId) && incoming().userId == existing().userId && incoming().id == existing().id && incoming().createdAt == existing().createdAt;
+        allow delete: if isOwner(userId) && isValidId(transactionId);
+      }
+
+      // Budgets
+      match /budgets/{budgetId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(budgetId) && isValidBudget(incoming(), userId);
+        allow update: if isOwner(userId) && isValidId(budgetId) && isValidBudget(incoming(), userId) && incoming().userId == existing().userId && incoming().id == existing().id && incoming().createdAt == existing().createdAt;
+        allow delete: if isOwner(userId) && isValidId(budgetId);
+      }
+
+      // Monthly Reports
+      match /monthlyReports/{reportId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(reportId) && isValidMonthlyReport(incoming(), userId);
+        allow update: if isOwner(userId) && isValidId(reportId) && isValidMonthlyReport(incoming(), userId) && incoming().userId == existing().userId && incoming().id == existing().id && incoming().createdAt == existing().createdAt;
+        allow delete: if isOwner(userId) && isValidId(reportId);
+      }
+
+      // Financial Goals
+      match /financialGoals/{goalId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(goalId) && isValidFinancialGoal(incoming(), userId);
+        allow update: if isOwner(userId) && isValidId(goalId) && isValidFinancialGoal(incoming(), userId) && incoming().userId == existing().userId && incoming().id == existing().id && incoming().createdAt == existing().createdAt;
+        allow delete: if isOwner(userId) && isValidId(goalId);
+      }
+    }
+  }
+}

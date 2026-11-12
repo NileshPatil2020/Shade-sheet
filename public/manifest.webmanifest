@@ -1,0 +1,16 @@
+{
+  "name": "RangSetu — Complete Paint Shade Finder",
+  "short_name": "RangSetu",
+  "description": "Indian cross-brand paint shade finder with searchable shade names and codes, favourites, comparisons and direct access to complete official brand catalogues.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f5f0",
+  "theme_color": "#f7f5f0",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
